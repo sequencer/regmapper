@@ -6,6 +6,7 @@ import $file.dependencies.chisel3.build
 import $file.dependencies.firrtl.build
 import $file.dependencies.treadle.build
 import $file.dependencies.chiseltest.build
+import $file.dependencies.tilelink.common
 import $file.common
 
 object v {
@@ -35,6 +36,21 @@ object mychiseltest extends dependencies.chiseltest.build.chiseltestCrossModule(
   def treadleModule: Option[PublishModule] = Some(mytreadle)
 }
 object regmapper extends common.RegMapperModule with ScalafmtModule { m =>
+  def scalaVersion = T { v.scala }
+  def chisel3Module = Some(mychisel3)
+  def chisel3PluginJar = T { Some(mychisel3.plugin.jar()) }
+  def upickleIvyModule = T { v.upickle }
+}
+
+object mytilelink extends dependencies.tilelink.common.TileLinkModule {
+  override def millSourcePath = os.pwd / "dependencies" / "tilelink" / "tilelink"
+  def scalaVersion = T { v.scala }
+  override def chisel3Module = Some(mychisel3)
+  override def chisel3PluginJar = T {Some(mychisel3.plugin.jar()) }
+}
+
+object regadapter extends common.RegMapperModule with ScalafmtModule { m =>
+  override def moduleDeps = super.moduleDeps ++ Seq(mytilelink, regmapper)
   def scalaVersion = T { v.scala }
   def chisel3Module = Some(mychisel3)
   def chisel3PluginJar = T { Some(mychisel3.plugin.jar()) }
